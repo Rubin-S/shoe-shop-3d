@@ -370,6 +370,19 @@ function selectPiece(pieceKey) {
         { label: 'Heel Assembly Context', file: 'leather_rand/Leather_Rand_Piece_03_Heel_Assembly_Context.jpg' },
         { label: 'Master Catalog Profile', file: 'Piece_03_Leather_Rand.jpg' }
       ];
+    } else if (piece.id === 4) {
+      subViews = [
+        { label: 'Bottom View (Ground)', file: 'outsole/Outsole_Piece_04_Bottom_View.jpg' },
+        { label: 'Top View (Insole Bed)', file: 'outsole/Outsole_Piece_04_Top_View.jpg' },
+        { label: 'Left Lateral Profile', file: 'outsole/Outsole_Piece_04_Left_Lateral_View.jpg' },
+        { label: 'Right Medial Profile', file: 'outsole/Outsole_Piece_04_Right_Medial_View.jpg' },
+        { label: 'Front Toe Chisel View', file: 'outsole/Outsole_Piece_04_Front_Toe_View.jpg' },
+        { label: 'Back Heel Seat View', file: 'outsole/Outsole_Piece_04_Back_Heel_View.jpg' },
+        { label: 'Hero 3/4 Perspective', file: 'outsole/Outsole_Piece_04_Hero_ThreeQuarter.jpg' },
+        { label: 'Fiddleback Spine Macro', file: 'outsole/Outsole_Piece_04_Macro_Fiddleback_Spine.jpg' },
+        { label: 'Heel Assembly Context', file: 'outsole/Outsole_Piece_04_Heel_Assembly_Context.jpg' },
+        { label: 'Master Catalog Profile', file: 'Piece_04_Outsole.jpg' }
+      ];
     }
 
     if (subViews.length > 0) {

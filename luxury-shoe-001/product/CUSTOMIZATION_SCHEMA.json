@@ -1,0 +1,156 @@
+{
+  "product_code": "SHOE_001",
+  "product_name": "AEROPRO AURELIUS",
+  "silhouette": "Continental Oxford Balmoral Hybrid",
+  "reference_last": "Atelier 01 (US 10.5 / EU 44)",
+  "dimensions_mm": {
+    "total_length": 298,
+    "ball_width": 104,
+    "waist_width": 68,
+    "heel_height": 27,
+    "toe_spring": 14
+  },
+  "structural_invariants": [
+    "270-degree Goodyear hand-welt construction",
+    "Dual-camber fiddleback triangular waist arch",
+    "Soft-chisel asymmetric toe with 14mm upward sweep",
+    "Closed-channel bottom sole stitching",
+    "Stacked 4-lift leather heel with dovetail rubber strike plate & brass nails"
+  ],
+  "customizable_regions": {
+    "upper": {
+      "id": "upper",
+      "name": "Vamp & Quarters",
+      "semantic_target": "Upper_Vamp,Upper_Quarters,Upper_Tongue,Upper_Collar",
+      "options": [
+        {
+          "id": "imperial_espresso",
+          "name": "Imperial Espresso (French Box Calf)",
+          "color": "#271912",
+          "roughness": 0.36,
+          "clearcoat": 0.35
+        },
+        {
+          "id": "cognac_antique",
+          "name": "Cognac Antique Museum Calf",
+          "color": "#5c3317",
+          "roughness": 0.38,
+          "clearcoat": 0.30
+        },
+        {
+          "id": "midnight_obsidian",
+          "name": "Midnight Obsidian Aniline",
+          "color": "#111112",
+          "roughness": 0.32,
+          "clearcoat": 0.40
+        },
+        {
+          "id": "oxblood_cordovan",
+          "name": "Burgundy Oxblood Glaze",
+          "color": "#3f1418",
+          "roughness": 0.28,
+          "clearcoat": 0.50
+        }
+      ],
+      "default": "imperial_espresso"
+    },
+    "toe_cap": {
+      "id": "toe_cap",
+      "name": "Chiseled Toe Cap",
+      "semantic_target": "Upper_Toe_Cap",
+      "options": [
+        {
+          "id": "mirror_obsidian",
+          "name": "Mirror Obsidian Glaze (Carnauba Wax)",
+          "color": "#140c09",
+          "roughness": 0.18,
+          "clearcoat": 0.90
+        },
+        {
+          "id": "tonal_burnish",
+          "name": "Tonal Espresso Burnish",
+          "color": "#22140e",
+          "roughness": 0.24,
+          "clearcoat": 0.75
+        },
+        {
+          "id": "cognac_glaze",
+          "name": "Cognac High Glaze",
+          "color": "#4a240d",
+          "roughness": 0.20,
+          "clearcoat": 0.85
+        }
+      ],
+      "default": "mirror_obsidian"
+    },
+    "laces": {
+      "id": "laces",
+      "name": "Braided Lacing",
+      "semantic_target": "Lacing_WaxedCotton",
+      "options": [
+        {
+          "id": "espresso_waxed",
+          "name": "Tonal Espresso Waxed",
+          "color": "#18110b"
+        },
+        {
+          "id": "obsidian_black",
+          "name": "Obsidian Black",
+          "color": "#0a0a0a"
+        },
+        {
+          "id": "raw_ecru",
+          "name": "Raw Ecru Linen",
+          "color": "#d9ccb8"
+        }
+      ],
+      "default": "espresso_waxed"
+    },
+    "welt": {
+      "id": "welt",
+      "name": "270° Goodyear Welt",
+      "semantic_target": "Construction_Welt_270",
+      "options": [
+        {
+          "id": "espresso_burnished",
+          "name": "Espresso Hand-Burnished",
+          "color": "#1c120c"
+        },
+        {
+          "id": "natural_wheeling",
+          "name": "Natural Oak Fudging",
+          "color": "#5e3e26"
+        },
+        {
+          "id": "onyx_black",
+          "name": "Onyx Black",
+          "color": "#0d0d0e"
+        }
+      ],
+      "default": "espresso_burnished"
+    },
+    "sole": {
+      "id": "sole",
+      "name": "Oak-Bark Outsole & Fiddleback",
+      "semantic_target": "Construction_Outsole",
+      "options": [
+        {
+          "id": "two_tone_fiddleback",
+          "name": "Two-Tone Fiddleback Stain",
+          "color": "#633e21"
+        },
+        {
+          "id": "black_dress",
+          "name": "Black Dress Formal",
+          "color": "#141416"
+        },
+        {
+          "id": "natural_parchment",
+          "name": "Natural Oak Tan",
+          "color": "#8f6643"
+        }
+      ],
+      "default": "two_tone_fiddleback"
+    }
+  }
+}
