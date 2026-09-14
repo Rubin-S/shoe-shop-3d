@@ -337,8 +337,9 @@ function selectPiece(pieceKey) {
     card.classList.remove('hidden');
 
     let galleryHtml = '';
+    let subViews = [];
     if (piece.id === 1) {
-      const NAIL_SUB_VIEWS = [
+      subViews = [
         { label: '5-Nail Studio Scatter', file: 'nails/Piece_01_Heel_Nails_Studio_Reference.jpg' },
         { label: 'Standing Upright', file: 'nails/Nail_Piece_01_Standing_Upright.jpg' },
         { label: 'Profile Horizontal', file: 'nails/Nail_Piece_02_Profile_Horizontal.jpg' },
@@ -347,10 +348,35 @@ function selectPiece(pieceKey) {
         { label: 'Underside Cross-Section', file: 'nails/Nail_Piece_05_Underside_CrossSection.jpg' },
         { label: 'Heel Assembly', file: 'Piece_01_Heel_Nails.jpg' }
       ];
+    } else if (piece.id === 2) {
+      subViews = [
+        { label: 'Assembled Stack', file: 'heel_lifts/Heel_Lifts_Assembled_Master.jpg' },
+        { label: 'Exploded Stack', file: 'heel_lifts/Heel_Lifts_Exploded_Stack.jpg' },
+        { label: 'Dovetail Joint Macro', file: 'heel_lifts/Heel_Lifts_Dovetail_Joint_Macro.jpg' },
+        { label: '6-Piece Blueprint', file: 'heel_lifts/Heel_Lifts_6_Pieces_Blueprint_Layout.jpg' },
+        { label: 'Piece 1: Top Leather', file: 'heel_lifts/Heel_Lift_Piece_01_Top_Leather.jpg' },
+        { label: 'Piece 2: Mid A Leather', file: 'heel_lifts/Heel_Lift_Piece_02_Mid_A_Leather.jpg' },
+        { label: 'Piece 3: Mid B Leather', file: 'heel_lifts/Heel_Lift_Piece_03_Mid_B_Leather.jpg' },
+        { label: 'Piece 4: Mid C Leather', file: 'heel_lifts/Heel_Lift_Piece_04_Mid_C_Leather.jpg' },
+        { label: 'Piece 5: Leather Dovetail', file: 'heel_lifts/Heel_Lift_Piece_05_Bottom_Leather_Dovetail.jpg' },
+        { label: 'Piece 6: Rubber Strike', file: 'heel_lifts/Heel_Lift_Piece_06_Rubber_Strike_Dovetail.jpg' }
+      ];
+    } else if (piece.id === 3) {
+      subViews = [
+        { label: 'Hero Studio Reference', file: 'leather_rand/Leather_Rand_Piece_03_Hero_Reference.jpg' },
+        { label: 'Cut Breast Macro', file: 'leather_rand/Leather_Rand_Piece_03_Macro_CrossSection.jpg' },
+        { label: 'Outer Curvature & Sheen', file: 'leather_rand/Leather_Rand_Piece_03_Rear_Curvature_Macro.jpg' },
+        { label: 'Top Blueprint Plan', file: 'leather_rand/Leather_Rand_Piece_03_Top_Blueprint.jpg' },
+        { label: 'Heel Assembly Context', file: 'leather_rand/Leather_Rand_Piece_03_Heel_Assembly_Context.jpg' },
+        { label: 'Master Catalog Profile', file: 'Piece_03_Leather_Rand.jpg' }
+      ];
+    }
+
+    if (subViews.length > 0) {
       galleryHtml = `
-        <div class="inspector-gallery-title" style="font-size:0.62rem; color:var(--accent-gold); font-family:var(--font-mono); margin-top:4px;">MULTI-PIECE MACRO VIEWS:</div>
+        <div class="inspector-gallery-title" style="font-size:0.62rem; color:var(--accent-gold); font-family:var(--font-mono); margin-top:4px;">MULTI-VIEW MACRO SUITE (${subViews.length} SHOTS):</div>
         <div class="inspector-gallery" style="display:flex; gap:6px; overflow-x:auto; padding:4px 0;">
-          ${NAIL_SUB_VIEWS.map((v, i) => `
+          ${subViews.map((v, i) => `
             <img src="/pieces/${v.file}" title="${v.label}" class="inspector-thumb ${i===0?'active':''}" style="width:40px; height:40px; border-radius:4px; border:1px solid ${i===0?'#d4af37':'rgba(255,255,255,0.15)'}; cursor:pointer; object-fit:cover; flex-shrink:0;" data-src="/pieces/${v.file}" data-lbl="${v.label}" />
           `).join('')}
         </div>
@@ -372,8 +398,8 @@ function selectPiece(pieceKey) {
       <button class="btn-focus-piece" id="btn-focus-current">Focus Camera in 3D</button>
     `;
 
-    // Add thumbnail click listeners
-    if (piece.id === 1) {
+    // Add thumbnail click listeners for any piece with a sub-gallery
+    if (subViews.length > 0) {
       card.querySelectorAll('.inspector-thumb').forEach(thumb => {
         thumb.addEventListener('click', (e) => {
           e.stopPropagation();
