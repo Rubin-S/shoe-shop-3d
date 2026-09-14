@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AEROPRO AURELIUS | Bespoke Footwear Master Configurator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0a0a0c;
+      --bg-card: rgba(18, 18, 22, 0.75);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-active: #d4af37;
+      --text-main: #f5f5f7;
+      --text-muted: #86868b;
+      --accent-gold: #c5a059;
+      --accent-gold-light: #e6ca85;
+      --font-serif: 'Cinzel', Georgia, serif;
+      --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #webgl-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    /* Top Navigation Header */
+    header {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 72px;
+      padding: 0 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 10;
+      background: linear-gradient(180deg, rgba(10, 10, 12, 0.85) 0%, rgba(10, 10, 12, 0) 100%);
+      pointer-events: none;
+    }
+
+    .brand-group {
+      pointer-events: auto;
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+    }
+
+    .brand-title {
+      font-family: var(--font-serif);
+      font-size: 1.25rem;
+      letter-spacing: 0.22em;
+      font-weight: 700;
+      color: #fff;
+      text-transform: uppercase;
+    }
+
+    .brand-sub {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--accent-gold);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+
+    .header-actions {
+      pointer-events: auto;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .btn-action {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      cursor: pointer;
+      transition: all 0.25s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-action:hover, .btn-action.active {
+      border-color: var(--accent-gold);
+      background: rgba(197, 160, 89, 0.15);
+      color: var(--accent-gold-light);
+    }
+
+    /* Left Floating Spec HUD */
+    .spec-hud {
+      position: absolute;
+      top: 100px;
+      left: 40px;
+      width: 280px;
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 24px;
+      z-index: 10;
+      pointer-events: auto;
+    }
+
+    .spec-header {
+      font-family: var(--font-serif);
+      font-size: 0.95rem;
+      letter-spacing: 0.1em;
+      margin-bottom: 4px;
+      color: #fff;
+    }
+
+    .spec-edition {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--accent-gold);
+      letter-spacing: 0.1em;
+      margin-bottom: 18px;
+    }
+
+    .spec-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px 8px;
+      margin-bottom: 20px;
+    }
+
+    .spec-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .spec-label {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-family: var(--font-mono);
+    }
+
+    .spec-value {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text-main);
+      margin-top: 2px;
+    }
+
+    .spec-features {
+      border-top: 1px solid var(--border-subtle);
+      padding-top: 14px;
+    }
+
+    .feature-tag {
+      display: inline-block;
+      font-size: 0.68rem;
+      color: #aaa;
+      background: rgba(255, 255, 255, 0.04);
+      padding: 4px 8px;
+      border-radius: 4px;
+      margin-right: 6px;
+      margin-bottom: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    /* Right Customizer Panel */
+    .customizer-panel {
+      position: absolute;
+      top: 100px;
+      right: 40px;
+      width: 320px;
+      max-height: calc(100vh - 140px);
+      overflow-y: auto;
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 24px;
+      z-index: 10;
+      pointer-events: auto;
+    }
+
+    .panel-title {
+      font-family: var(--font-serif);
+      font-size: 1rem;
+      letter-spacing: 0.12em;
+      margin-bottom: 6px;
+    }
+
+    .panel-desc {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+      line-height: 1.4;
+    }
+
+    .section-title {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent-gold);
+      margin-top: 16px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .swatch-group {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .swatch-btn {
+      aspect-ratio: 1;
+      border-radius: 8px;
+      border: 2px solid transparent;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.2s ease;
+      background-clip: padding-box;
+    }
+
+    .swatch-btn::after {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border: 1px solid transparent;
+      border-radius: 10px;
+      transition: all 0.2s ease;
+    }
+
+    .swatch-btn:hover::after {
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    .swatch-btn.active::after {
+      border-color: var(--accent-gold);
+    }
+
+    .swatch-label {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      text-align: center;
+      margin-top: 4px;
+      grid-column: span 4;
+      font-family: var(--font-mono);
+    }
+
+    /* Bottom Camera Navigation Controls */
+    .camera-hud {
+      position: absolute;
+      bottom: 36px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border-subtle);
+      border-radius: 30px;
+      padding: 6px 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      z-index: 10;
+      pointer-events: auto;
+    }
+
+    .cam-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      padding: 8px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .cam-btn:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .cam-btn.active {
+      color: #000;
+      background: var(--accent-gold-light);
+      font-weight: 500;
+    }
+
+    /* Loading Overlay */
+    #loading-overlay {
+      position: absolute;
+      inset: 0;
+      background: #0a0a0c;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.6s ease, visibility 0.6s ease;
+    }
+
+    #loading-overlay.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .loader-spinner {
+      width: 44px;
+      height: 44px;
+      border: 2px solid rgba(197, 160, 89, 0.2);
+      border-top-color: var(--accent-gold);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 20px;
+    }
+
+    .loader-text {
+      font-family: var(--font-serif);
+      letter-spacing: 0.2em;
+      font-size: 0.9rem;
+      color: var(--accent-gold);
+      text-transform: uppercase;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 900px) {
+      .spec-hud { display: none; }
+      .customizer-panel {
+        top: auto;
+        bottom: 90px;
+        right: 20px;
+        left: 20px;
+        width: auto;
+        max-height: 220px;
+      }
+      .camera-hud {
+        bottom: 20px;
+        overflow-x: auto;
+        width: 90%;
+        justify-content: flex-start;
+      }
+    }
+  </style>
+  <!-- Three.js + GLTFLoader + OrbitControls via CDN ESM -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="loading-overlay">
+    <div class="loader-spinner"></div>
+    <div class="loader-text">Loading Aurelius Sovereign Oxford...</div>
+  </div>
+
+  <header>
+    <div class="brand-group">
+      <span class="brand-title">AEROPRO</span>
+      <span class="brand-sub">SHOE_001 // AURELIUS</span>
+    </div>
+    <div class="header-actions">
+      <button id="btn-explode" class="btn-action">
+        <span>Anatomy Deconstruct</span>
+      </button>
+      <button id="btn-audio" class="btn-action">
+        <span>Audio SFX</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Left Spec Readout -->
+  <aside class="spec-hud">
+    <div class="spec-header">AURELIUS SOVEREIGN</div>
+    <div class="spec-edition">ATELIER ARCHIVE // US 10.5</div>
+    
+    <div class="spec-grid">
+      <div class="spec-item">
+        <span class="spec-label">Overall Length</span>
+        <span class="spec-value">298 mm</span>
+      </div>
+      <div class="spec-item">
+        <span class="spec-label">Ball Width</span>
+        <span class="spec-value">104 mm</span>
+      </div>
+      <div class="spec-item">
+        <span class="spec-label">Waist Arch</span>
+        <span class="spec-value">68 mm (Fiddleback)</span>
+      </div>
+      <div class="spec-item">
+        <span class="spec-label">Heel Pitch</span>
+        <span class="spec-value">27 mm (4 Lifts)</span>
+      </div>
+      <div class="spec-item">
+        <span class="spec-label">Toe Spring</span>
+        <span class="spec-value">14 mm Uplift</span>
+      </div>
+      <div class="spec-item">
+        <span class="spec-label">Welt Stitch</span>
+        <span class="spec-value">12 SPI Fudged</span>
+      </div>
+    </div>
+
+    <div class="spec-features">
+      <span class="feature-tag">270° Goodyear Welt</span>
+      <span class="feature-tag">French Box Calf</span>
+      <span class="feature-tag">Oak-Bark Sole</span>
+      <span class="feature-tag">Carnauba Glaze</span>
+    </div>
+  </aside>
+
+  <!-- Right Customizer Panel -->
+  <aside class="customizer-panel">
+    <div class="panel-title">BESPOKE ATELIER</div>
+    <div class="panel-desc">Real-time material customization with physically based rendering.</div>
+
+    <!-- 1. Upper Leather -->
+    <div class="section-title">
+      <span>Upper Leather</span>
+      <span id="label-upper-color">Imperial Espresso</span>
+    </div>
+    <div class="swatch-group" id="swatches-upper">
+      <button class="swatch-btn active" data-color="#271912" data-name="Imperial Espresso" style="background: #271912;"></button>
+      <button class="swatch-btn" data-color="#5c3317" data-name="Cognac Antique" style="background: #5c3317;"></button>
+      <button class="swatch-btn" data-color="#111112" data-name="Midnight Obsidian" style="background: #111112;"></button>
+      <button class="swatch-btn" data-color="#3f1418" data-name="Burgundy Oxblood" style="background: #3f1418;"></button>
+    </div>
+
+    <!-- 2. Chiseled Toe Cap -->
+    <div class="section-title">
+      <span>Toe Cap Glaze</span>
+      <span id="label-toe-color">Mirror Obsidian</span>
+    </div>
+    <div class="swatch-group" id="swatches-toe">
+      <button class="swatch-btn active" data-color="#140c09" data-name="Mirror Obsidian" style="background: #140c09;"></button>
+      <button class="swatch-btn" data-color="#22140e" data-name="Tonal Espresso" style="background: #22140e;"></button>
+      <button class="swatch-btn" data-color="#4a240d" data-name="Cognac Glaze" style="background: #4a240d;"></button>
+      <button class="swatch-btn" data-color="#2a0c10" data-name="Oxblood Mirror" style="background: #2a0c10;"></button>
+    </div>
+
+    <!-- 3. Laces -->
+    <div class="section-title">
+      <span>Braided Laces</span>
+      <span id="label-lace-color">Tonal Espresso</span>
+    </div>
+    <div class="swatch-group" id="swatches-laces">
+      <button class="swatch-btn active" data-color="#18110b" data-name="Tonal Espresso" style="background: #18110b;"></button>
+      <button class="swatch-btn" data-color="#0a0a0a" data-name="Obsidian Black" style="background: #0a0a0a;"></button>
+      <button class="swatch-btn" data-color="#d9ccb8" data-name="Raw Ecru Linen" style="background: #d9ccb8;"></button>
+    </div>
+
+    <!-- 4. Sole & Fiddleback -->
+    <div class="section-title">
+      <span>Outsole Finish</span>
+      <span id="label-sole-color">Two-Tone Fiddleback</span>
+    </div>
+    <div class="swatch-group" id="swatches-sole">
+      <button class="swatch-btn active" data-color="#633e21" data-name="Two-Tone Fiddleback" style="background: #633e21;"></button>
+      <button class="swatch-btn" data-color="#141416" data-name="Black Dress Formal" style="background: #141416;"></button>
+      <button class="swatch-btn" data-color="#8f6643" data-name="Natural Oak Tan" style="background: #8f6643;"></button>
+    </div>
+  </aside>
+
+  <!-- Bottom Camera View Controls -->
+  <div class="camera-hud">
+    <button class="cam-btn active" data-shot="three_quarter">Hero 3/4</button>
+    <button class="cam-btn" data-shot="lateral">Profile</button>
+    <button class="cam-btn" data-shot="front">Toe Chisel</button>
+    <button class="cam-btn" data-shot="fiddleback">Fiddleback Sole</button>
+    <button class="cam-btn" data-shot="heel">Heel Stack</button>
+  </div>
+
+  <div id="webgl-container"></div>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
