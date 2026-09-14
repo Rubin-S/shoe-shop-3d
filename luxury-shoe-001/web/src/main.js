@@ -335,12 +335,35 @@ function selectPiece(pieceKey) {
   const card = document.getElementById('anatomy-inspector-card');
   if (card && piece) {
     card.classList.remove('hidden');
+
+    let galleryHtml = '';
+    if (piece.id === 1) {
+      const NAIL_SUB_VIEWS = [
+        { label: '5-Nail Studio Scatter', file: 'nails/Piece_01_Heel_Nails_Studio_Reference.jpg' },
+        { label: 'Standing Upright', file: 'nails/Nail_Piece_01_Standing_Upright.jpg' },
+        { label: 'Profile Horizontal', file: 'nails/Nail_Piece_02_Profile_Horizontal.jpg' },
+        { label: 'Domed Head Macro', file: 'nails/Nail_Piece_03_Macro_Head_Dome.jpg' },
+        { label: 'Diamond Tip Macro', file: 'nails/Nail_Piece_04_Macro_Fluted_Shank_Tip.jpg' },
+        { label: 'Underside Cross-Section', file: 'nails/Nail_Piece_05_Underside_CrossSection.jpg' },
+        { label: 'Heel Assembly', file: 'Piece_01_Heel_Nails.jpg' }
+      ];
+      galleryHtml = `
+        <div class="inspector-gallery-title" style="font-size:0.62rem; color:var(--accent-gold); font-family:var(--font-mono); margin-top:4px;">MULTI-PIECE MACRO VIEWS:</div>
+        <div class="inspector-gallery" style="display:flex; gap:6px; overflow-x:auto; padding:4px 0;">
+          ${NAIL_SUB_VIEWS.map((v, i) => `
+            <img src="/pieces/${v.file}" title="${v.label}" class="inspector-thumb ${i===0?'active':''}" style="width:40px; height:40px; border-radius:4px; border:1px solid ${i===0?'#d4af37':'rgba(255,255,255,0.15)'}; cursor:pointer; object-fit:cover; flex-shrink:0;" data-src="/pieces/${v.file}" data-lbl="${v.label}" />
+          `).join('')}
+        </div>
+      `;
+    }
+
     card.innerHTML = `
       <div class="inspector-badge">COMPONENT #${String(piece.id).padStart(2, '0')} // ${piece.category.toUpperCase()}</div>
       <div class="inspector-title">${piece.name}</div>
       <div class="inspector-img-container">
-        <img src="/pieces/${piece.file}" alt="${piece.name}" class="inspector-img" onerror="this.style.display='none'" />
+        <img id="main-inspector-img" src="/pieces/${piece.file}" alt="${piece.name}" class="inspector-img" onerror="this.style.display='none'" />
       </div>
+      ${galleryHtml}
       <div class="inspector-meta-row">
         <span class="inspector-lbl">Material:</span>
         <span class="inspector-val">${piece.material}</span>
@@ -348,6 +371,21 @@ function selectPiece(pieceKey) {
       <div class="inspector-desc">${piece.desc}</div>
       <button class="btn-focus-piece" id="btn-focus-current">Focus Camera in 3D</button>
     `;
+
+    // Add thumbnail click listeners
+    if (piece.id === 1) {
+      card.querySelectorAll('.inspector-thumb').forEach(thumb => {
+        thumb.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const targetSrc = thumb.getAttribute('data-src');
+          const mainImg = document.getElementById('main-inspector-img');
+          if (mainImg) mainImg.src = targetSrc;
+          card.querySelectorAll('.inspector-thumb').forEach(t => t.style.borderColor = 'rgba(255,255,255,0.15)');
+          thumb.style.borderColor = '#d4af37';
+        });
+      });
+    }
+
     const btnFocus = document.getElementById('btn-focus-current');
     if (btnFocus && comp) {
       btnFocus.addEventListener('click', () => {

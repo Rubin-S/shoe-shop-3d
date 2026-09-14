@@ -220,17 +220,20 @@ def build_all_20_pieces(col, mats):
         (-0.010, -0.121, 0.001), ( 0.000, -0.122, 0.001), ( 0.010, -0.121, 0.001),
         ( 0.018, -0.116, 0.001), ( 0.020, -0.106, 0.001), ( 0.018, -0.094, 0.001)
     ]
+    try:
+        from render_complete_nail_suite import create_fluted_nail_bmesh
+    except ImportError:
+        from build_photorealistic_heel_nails import create_fluted_nail_bmesh
     for nx, ny, nz in nail_coords:
-        bmesh.ops.create_cone(
-            bm_n, cap_ends=True, cap_tris=False, segments=12,
-            radius1=0.0010, radius2=0.0010, depth=0.008,
-            matrix=Matrix.Translation(Vector((nx, ny, nz + 0.004)))
-        )
-        bmesh.ops.create_cone(
-            bm_n, cap_ends=True, cap_tris=False, segments=16,
-            radius1=0.0022, radius2=0.0022, depth=0.0008,
-            matrix=Matrix.Translation(Vector((nx, ny, nz + 0.0004)))
-        )
+        bm_single = create_fluted_nail_bmesh()
+        mat_xform = Matrix.Translation(Vector((nx, ny, nz))) @ Matrix.Rotation(math.pi, 4, 'X')
+        bmesh.ops.transform(bm_single, matrix=mat_xform, verts=bm_single.verts)
+        v_map = {}
+        for v in bm_single.verts:
+            v_map[v] = bm_n.verts.new(v.co)
+        for f in bm_single.faces:
+            bm_n.faces.new([v_map[v] for v in f.verts])
+        bm_single.free()
     bm_n.to_mesh(nails_mesh)
     bm_n.free()
     for p in nails_mesh.polygons: p.use_smooth = True
