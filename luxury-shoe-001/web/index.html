@@ -10,7 +10,7 @@
   <style>
     :root {
       --bg-dark: #0a0a0c;
-      --bg-card: rgba(18, 18, 22, 0.75);
+      --bg-card: rgba(18, 18, 22, 0.82);
       --border-subtle: rgba(255, 255, 255, 0.08);
       --border-active: #d4af37;
       --text-main: #f5f5f7;
@@ -61,7 +61,7 @@
       align-items: center;
       justify-content: space-between;
       z-index: 10;
-      background: linear-gradient(180deg, rgba(10, 10, 12, 0.85) 0%, rgba(10, 10, 12, 0) 100%);
+      background: linear-gradient(180deg, rgba(10, 10, 12, 0.90) 0%, rgba(10, 10, 12, 0) 100%);
       pointer-events: none;
     }
 
@@ -100,7 +100,7 @@
       background: rgba(255, 255, 255, 0.05);
       border: 1px solid var(--border-subtle);
       color: var(--text-main);
-      padding: 8px 16px;
+      padding: 8px 18px;
       border-radius: 20px;
       font-size: 0.75rem;
       font-family: var(--font-mono);
@@ -113,24 +113,26 @@
 
     .btn-action:hover, .btn-action.active {
       border-color: var(--accent-gold);
-      background: rgba(197, 160, 89, 0.15);
+      background: rgba(197, 160, 89, 0.18);
       color: var(--accent-gold-light);
+      box-shadow: 0 0 16px rgba(197, 160, 89, 0.25);
     }
 
     /* Left Floating Spec HUD */
     .spec-hud {
       position: absolute;
-      top: 100px;
+      top: 96px;
       left: 40px;
       width: 280px;
       background: var(--bg-card);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
       border: 1px solid var(--border-subtle);
       border-radius: 12px;
       padding: 24px;
       z-index: 10;
       pointer-events: auto;
+      transition: opacity 0.35s ease;
     }
 
     .spec-header {
@@ -193,17 +195,229 @@
       border: 1px solid rgba(255, 255, 255, 0.05);
     }
 
+    /* 20-Piece Anatomy Drawer */
+    #anatomy-drawer {
+      position: absolute;
+      top: 88px;
+      left: 32px;
+      width: 340px;
+      max-height: calc(100vh - 170px);
+      background: var(--bg-card);
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+      border: 1px solid rgba(212, 175, 55, 0.35);
+      border-radius: 14px;
+      padding: 20px;
+      z-index: 15;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transform: translateX(-420px);
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease;
+      opacity: 0;
+      pointer-events: none;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.6);
+    }
+
+    #anatomy-drawer.open {
+      transform: translateX(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .drawer-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 10px;
+    }
+
+    .drawer-title {
+      font-family: var(--font-serif);
+      font-size: 0.95rem;
+      letter-spacing: 0.12em;
+      color: #fff;
+    }
+
+    .drawer-count {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--accent-gold);
+    }
+
+    #anatomy-list {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding-right: 4px;
+    }
+
+    #anatomy-list::-webkit-scrollbar {
+      width: 4px;
+    }
+    #anatomy-list::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 2px;
+    }
+
+    .anatomy-item {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 8px 10px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .anatomy-item:hover {
+      background: rgba(197, 160, 89, 0.10);
+      border-color: rgba(197, 160, 89, 0.40);
+    }
+
+    .anatomy-item.active {
+      background: rgba(197, 160, 89, 0.20);
+      border-color: var(--accent-gold);
+    }
+
+    .anatomy-item-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .anatomy-badge {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--accent-gold);
+      font-weight: 600;
+    }
+
+    .anatomy-name {
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: #fff;
+      flex: 1;
+    }
+
+    .anatomy-cat {
+      font-family: var(--font-mono);
+      font-size: 0.60rem;
+      color: #888;
+      text-transform: uppercase;
+      background: rgba(255, 255, 255, 0.06);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .anatomy-item-meta {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      margin-top: 3px;
+      font-family: var(--font-mono);
+    }
+
+    /* Inspector Card */
+    #anatomy-inspector-card {
+      background: rgba(12, 12, 16, 0.95);
+      border: 1px solid var(--border-active);
+      border-radius: 10px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    #anatomy-inspector-card.hidden {
+      display: none;
+    }
+
+    .inspector-badge {
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      color: var(--accent-gold);
+      letter-spacing: 0.1em;
+    }
+
+    .inspector-title {
+      font-family: var(--font-serif);
+      font-size: 1.05rem;
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .inspector-img-container {
+      width: 100%;
+      height: 120px;
+      border-radius: 6px;
+      overflow: hidden;
+      background: #000;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .inspector-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .inspector-meta-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.70rem;
+    }
+
+    .inspector-lbl {
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+
+    .inspector-val {
+      color: var(--accent-gold-light);
+      font-family: var(--font-mono);
+      font-weight: 500;
+    }
+
+    .inspector-desc {
+      font-size: 0.72rem;
+      color: #bbb;
+      line-height: 1.4;
+    }
+
+    .btn-focus-piece {
+      background: rgba(197, 160, 89, 0.15);
+      border: 1px solid var(--accent-gold);
+      color: var(--accent-gold-light);
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-size: 0.72rem;
+      font-family: var(--font-mono);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-top: 4px;
+    }
+
+    .btn-focus-piece:hover {
+      background: var(--accent-gold);
+      color: #000;
+    }
+
     /* Right Customizer Panel */
     .customizer-panel {
       position: absolute;
-      top: 100px;
+      top: 96px;
       right: 40px;
       width: 320px;
-      max-height: calc(100vh - 140px);
+      max-height: calc(100vh - 160px);
       overflow-y: auto;
       background: var(--bg-card);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
       border: 1px solid var(--border-subtle);
       border-radius: 12px;
       padding: 24px;
@@ -221,7 +435,7 @@
     .panel-desc {
       font-size: 0.75rem;
       color: var(--text-muted);
-      margin-bottom: 20px;
+      margin-bottom: 18px;
       line-height: 1.4;
     }
 
@@ -271,30 +485,20 @@
       border-color: var(--accent-gold);
     }
 
-    .swatch-label {
-      font-size: 0.65rem;
-      color: var(--text-muted);
-      text-align: center;
-      margin-top: 4px;
-      grid-column: span 4;
-      font-family: var(--font-mono);
-    }
-
-    /* Bottom Camera Navigation Controls */
+    /* Bottom Camera View Controls */
     .camera-hud {
       position: absolute;
-      bottom: 36px;
+      bottom: 32px;
       left: 50%;
       transform: translateX(-50%);
+      display: flex;
+      gap: 10px;
       background: var(--bg-card);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
       border: 1px solid var(--border-subtle);
       border-radius: 30px;
       padding: 6px 10px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
       z-index: 10;
       pointer-events: auto;
     }
@@ -303,37 +507,35 @@
       background: transparent;
       border: none;
       color: var(--text-muted);
-      font-family: var(--font-mono);
-      font-size: 0.72rem;
       padding: 8px 16px;
       border-radius: 20px;
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
       cursor: pointer;
       transition: all 0.2s ease;
-      white-space: nowrap;
     }
 
     .cam-btn:hover {
-      color: #fff;
-      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-main);
     }
 
     .cam-btn.active {
-      color: #000;
-      background: var(--accent-gold-light);
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
       font-weight: 500;
     }
 
     /* Loading Overlay */
     #loading-overlay {
-      position: absolute;
+      position: fixed;
       inset: 0;
-      background: #0a0a0c;
+      background: var(--bg-dark);
       z-index: 100;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      transition: opacity 0.6s ease, visibility 0.6s ease;
+      transition: opacity 0.5s ease, visibility 0.5s ease;
     }
 
     #loading-overlay.hidden {
@@ -343,8 +545,8 @@
     }
 
     .loader-spinner {
-      width: 44px;
-      height: 44px;
+      width: 48px;
+      height: 48px;
       border: 2px solid rgba(197, 160, 89, 0.2);
       border-top-color: var(--accent-gold);
       border-radius: 50%;
@@ -367,11 +569,18 @@
     /* Responsive adjustments */
     @media (max-width: 900px) {
       .spec-hud { display: none; }
+      #anatomy-drawer {
+        top: 80px;
+        left: 16px;
+        right: 16px;
+        width: auto;
+        max-height: 45vh;
+      }
       .customizer-panel {
         top: auto;
         bottom: 90px;
-        right: 20px;
-        left: 20px;
+        right: 16px;
+        left: 16px;
         width: auto;
         max-height: 220px;
       }
@@ -383,12 +592,11 @@
       }
     }
   </style>
-  <!-- Three.js + GLTFLoader + OrbitControls via CDN ESM -->
   <script type="importmap">
     {
       "imports": {
         "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        "three/examples/jsm/": "https://unpkg.com/three@0.160.0/examples/jsm/"
       }
     }
   </script>
@@ -409,12 +617,12 @@
         <span>Anatomy Deconstruct</span>
       </button>
       <button id="btn-audio" class="btn-action">
-        <span>Audio SFX</span>
+        <span>Audio SFX: ON</span>
       </button>
     </div>
   </header>
 
-  <!-- Left Spec Readout -->
+  <!-- Left Spec Readout (Default View) -->
   <aside class="spec-hud">
     <div class="spec-header">AURELIUS SOVEREIGN</div>
     <div class="spec-edition">ATELIER ARCHIVE // US 10.5</div>
@@ -434,7 +642,7 @@
       </div>
       <div class="spec-item">
         <span class="spec-label">Heel Pitch</span>
-        <span class="spec-value">27 mm (4 Lifts)</span>
+        <span class="spec-value">27 mm (5 Lifts)</span>
       </div>
       <div class="spec-item">
         <span class="spec-label">Toe Spring</span>
@@ -452,6 +660,20 @@
       <span class="feature-tag">Oak-Bark Sole</span>
       <span class="feature-tag">Carnauba Glaze</span>
     </div>
+  </aside>
+
+  <!-- Left 20-Piece Anatomy Drawer (Exploded View) -->
+  <aside id="anatomy-drawer">
+    <div class="drawer-title-row">
+      <span class="drawer-title">ANATOMY OF A DRESS SHOE</span>
+      <span class="drawer-count">20 PIECES</span>
+    </div>
+
+    <!-- Active Component Inspector Card -->
+    <div id="anatomy-inspector-card" class="hidden"></div>
+
+    <!-- Scrollable Component List -->
+    <div id="anatomy-list"></div>
   </aside>
 
   <!-- Right Customizer Panel -->
@@ -497,12 +719,12 @@
     <!-- 4. Sole & Fiddleback -->
     <div class="section-title">
       <span>Outsole Finish</span>
-      <span id="label-sole-color">Two-Tone Fiddleback</span>
+      <span id="label-sole-color">Natural Oak Bark</span>
     </div>
     <div class="swatch-group" id="swatches-sole">
-      <button class="swatch-btn active" data-color="#633e21" data-name="Two-Tone Fiddleback" style="background: #633e21;"></button>
+      <button class="swatch-btn active" data-color="#633e21" data-name="Natural Oak Bark" style="background: #633e21;"></button>
       <button class="swatch-btn" data-color="#141416" data-name="Black Dress Formal" style="background: #141416;"></button>
-      <button class="swatch-btn" data-color="#8f6643" data-name="Natural Oak Tan" style="background: #8f6643;"></button>
+      <button class="swatch-btn" data-color="#8f6643" data-name="Light Oak Tan" style="background: #8f6643;"></button>
     </div>
   </aside>
 

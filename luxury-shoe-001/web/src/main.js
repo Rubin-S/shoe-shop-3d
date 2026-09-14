@@ -2,23 +2,82 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
-// --- Global State ---
-let scene, camera, renderer, controls;
-let shoeGroup, shoeComponents = {};
-let isExploded = false;
-let audioCtx = null;
-let soundEnabled = true;
+// --- Anatomical Metadata for All 20 Components ---
+const ANATOMICAL_PIECES = [
+  { id: 1, key: 'Piece_01_Heel_Nails', name: 'Heel Nails', category: 'Foundation', material: 'Antique Brass (9 Pins)', file: 'Piece_01_Heel_Nails.jpg', desc: 'Nine solid brass pins driven in a horseshoe retention pattern, mechanically locking the stacked leather heel to the insole seat.' },
+  { id: 2, key: 'Piece_02_Heel_Lifts', name: 'Heel Lifts', category: 'Foundation', material: 'Stacked Leather & Rubber', file: 'Piece_02_Heel_Lifts.jpg', desc: 'Five stacked lifts: four layers of compressed 5mm oak-bark leather capped with a beveled dovetail rubber strike pad.' },
+  { id: 3, key: 'Piece_03_Leather_Rand', name: 'Leather Rand', category: 'Foundation', material: 'Skived Rand Leather', file: 'Piece_03_Leather_Rand.jpg', desc: 'U-shaped skived leather strip wrapping the heel perimeter, creating a flush, watertight transition between upper and heel.' },
+  { id: 4, key: 'Piece_04_Outsole', name: 'Oak-Bark Outsole', category: 'Foundation', material: 'Oak-Bark Tanned Leather', file: 'Piece_04_Outsole.jpg', desc: 'Continuous outsole featuring a hand-sculpted fiddleback waist spine and beveled edge, tanned using traditional oak bark.' },
+  { id: 5, key: 'Piece_05_Footbed_Filler', name: 'Cork Footbed Filler', category: 'Foundation', material: 'Granulated Natural Cork', file: 'Piece_05_Footbed_Filler.jpg', desc: 'Granulated Portuguese cork paste filling the cavity inside the welt rib, molding to the plantar shape of the wearer.' },
+  { id: 6, key: 'Piece_06_Shank', name: 'Steel Arch Shank', category: 'Arch Core', material: 'Tempered Spring Steel', file: 'Piece_06_Shank.jpg', desc: 'Cambered high-carbon spring steel arch reinforcement beam anchored with twin brass rivets, preventing arch fatigue.' },
+  { id: 7, key: 'Piece_07_Goodyear_Welt', name: 'Goodyear Welt Strip', category: 'Construction', material: '270° Channeled Leather', file: 'Piece_07_Goodyear_Welt.jpg', desc: '270° perimeter welt strip with an angled bevel, stitched directly to the insole rib and lock-stitched to the outsole.' },
+  { id: 8, key: 'Piece_08_Insole', name: 'Vegetable-Tanned Insole', category: 'Foundation', material: '5.5mm Veg-Tan Shoulder', file: 'Piece_08_Insole.jpg', desc: 'Anatomical vegetable-tanned shoulder foundation with a carved gemming channel, serving as the master structural backbone.' },
+  { id: 9, key: 'Piece_09_Toe_Puff', name: 'Toe Puff Stiffener', category: 'Internal', material: 'Thermoformed Fiber Stiffener', file: 'Piece_09_Toe_Puff.jpg', desc: 'Internal thermoformed dome stiffener skived ultra-thin at edges, preserving the sharp chisel toe profile under wear.' },
+  { id: 10, key: 'Piece_10_Heel_Counter', name: 'Heel Counter', category: 'Internal', material: 'Molded Calcaneus Stiffener', file: 'Piece_10_Heel_Counter.jpg', desc: 'Molded calcaneus cup stiffener cradling the heel bone, preventing lateral slippage and stabilizing each stride.' },
+  { id: 11, key: 'Piece_11_Lining', name: 'Glove Calfskin Lining', category: 'Internal', material: 'Drum-Dyed Parchment Calfskin', file: 'Piece_11_Lining.jpg', desc: 'Full glove-soft drum-dyed calfskin lining offering a frictionless, moisture-wicking climate interior for the foot.' },
+  { id: 12, key: 'Piece_12_Quarters', name: 'Quarters', category: 'Upper', material: 'French Box Calf Leather', file: 'Piece_12_Quarters.jpg', desc: 'Medial and lateral upper leather panels extending from the heel curve to meet beneath the vamp at the throat.' },
+  { id: 13, key: 'Piece_13_Heel_Back_Strip', name: 'Heel Back Strip', category: 'Upper', material: 'French Box Calf Leather', file: 'Piece_13_Heel_Back_Strip.jpg', desc: 'Vertical reinforcing leather strip skived and stitched down the rear Achilles seam to resist tensile stepping stresses.' },
+  { id: 14, key: 'Piece_14_Rolled_Collar_Binding', name: 'Rolled Collar Binding', category: 'Upper', material: 'Rolled Leather Piping', file: 'Piece_14_Rolled_Collar_Binding.jpg', desc: 'Continuous French rolled calfskin piping bead framing the opening collar of the shoe, preventing chafing.' },
+  { id: 15, key: 'Piece_15_Vamp', name: 'Vamp', category: 'Upper', material: 'French Box Calf Leather', file: 'Piece_15_Vamp.jpg', desc: 'Main instep leather panel spanning the metatarsal bridge, sculpted to conform to the dorsal profile of the foot.' },
+  { id: 16, key: 'Piece_16_Facings', name: 'Closed Facings & Eyelets', category: 'Closure', material: 'Box Calf + 10 Brass Eyelets', file: 'Piece_16_Facings.jpg', desc: 'Closed Oxford lace stays with 5 pairs of punched eyelets reinforced with antique brass eyelet grommets.' },
+  { id: 17, key: 'Piece_17_Padded_Tongue', name: 'Padded Throat Tongue', category: 'Closure', material: 'Calfskin + 2mm Foam Core', file: 'Piece_17_Padded_Tongue.jpg', desc: 'Ergonomic throat tongue with 2mm internal foam padding, protecting the dorsal nerve against lace bite.' },
+  { id: 18, key: 'Piece_18_Toe_Cap', name: 'Chisel Toe Cap', category: 'Upper', material: 'Mirror Obsidian Glazed Calf', file: 'Piece_18_Toe_Cap.jpg', desc: 'Hand-burnished soft-chisel cap toe panel featuring a mirror obsidian glaze (glacage) over an espresso base.' },
+  { id: 19, key: 'Piece_19_Waxed_Laces', name: 'Waxed Laces & Aglets', category: 'Closure', material: 'Braided Cotton + Brass Aglets', file: 'Piece_19_Waxed_Laces.jpg', desc: 'Beeswax-treated braided Egyptian cotton laces in bespoke straight-bar pattern, terminated with solid brass aglets.' },
+  { id: 20, key: 'Piece_20_Micro_Stitching', name: 'Twin Micro-Stitching', category: 'Detail', material: '11 SPI Waxed Linen Thread', file: 'Piece_20_Micro_Stitching.jpg', desc: '11 stitches-per-inch (SPI) twin parallel seams sewn with high-tensile waxed linen thread along the toe cap line.' }
+];
 
-// Camera Presets
-const CAMERA_PRESETS = {
-  three_quarter: { pos: [-0.45, 0.24, 0.42], target: [0, 0.04, 0] },
-  lateral: { pos: [-0.58, 0.048, 0.015], target: [0, 0.04, 0] },
-  front: { pos: [0.002, 0.065, 0.54], target: [0, 0.04, 0.08] },
-  fiddleback: { pos: [0.00, -0.48, 0.01], target: [0, 0.02, 0] },
-  heel: { pos: [-0.24, 0.08, -0.38], target: [0, 0.05, -0.10] }
+// --- Calibrated 3D Exploded Offsets for All 20 Individual Pieces ---
+const EXPLODED_OFFSETS = {
+  // Topmost Closure & Detailing
+  'Piece_19_Waxed_Laces':          { dy: 0.220, dz:  0.020, dx:  0.000 },
+  'Piece_16_Facings':              { dy: 0.170, dz:  0.010, dx:  0.000 },
+  'Piece_17_Padded_Tongue':        { dy: 0.135, dz: -0.015, dx:  0.000 },
+  'Piece_20_Micro_Stitching':      { dy: 0.125, dz:  0.050, dx:  0.000 },
+  'Piece_18_Toe_Cap':              { dy: 0.100, dz:  0.070, dx:  0.000 },
+  'Piece_14_Rolled_Collar_Binding':{ dy: 0.105, dz: -0.020, dx:  0.000 },
+  'Piece_15_Vamp':                 { dy: 0.085, dz:  0.015, dx:  0.000 },
+  'Piece_13_Heel_Back_Strip':      { dy: 0.075, dz: -0.065, dx:  0.000 },
+  'Piece_12_Quarters':             { dy: 0.065, dz: -0.020, dx:  0.000 },
+
+  // Internal Structural Layers
+  'Piece_09_Toe_Puff':             { dy: 0.045, dz:  0.085, dx:  0.000 }, // Steps out forward to reveal shape
+  'Piece_11_Lining':               { dy: 0.035, dz:  0.000, dx:  0.000 },
+  'Piece_10_Heel_Counter':         { dy: 0.035, dz: -0.075, dx:  0.000 }, // Steps out rearward to reveal cup
+  'Piece_08_Insole':               { dy: 0.000, dz:  0.000, dx:  0.000 }, // Datum backbone
+
+  // Foundation & Sole Units
+  'Piece_06_Shank':                { dy: -0.025, dz:  0.000, dx:  0.000 },
+  'Piece_05_Footbed_Filler':       { dy: -0.045, dz:  0.000, dx:  0.000 },
+  'Piece_07_Goodyear_Welt':        { dy: -0.068, dz:  0.000, dx:  0.000 },
+  'Piece_04_Outsole':              { dy: -0.098, dz:  0.000, dx:  0.000 },
+  'Piece_03_Leather_Rand':         { dy: -0.128, dz: -0.020, dx:  0.000 },
+  'Piece_02_Heel_Lifts':           { dy: -0.160, dz: -0.020, dx:  0.000 },
+  'Piece_01_Heel_Nails':           { dy: -0.198, dz: -0.020, dx:  0.000 }
 };
 
-// --- Web Audio Synthesized SFX ---
+// --- Camera Presets ---
+const CAMERA_PRESETS = {
+  three_quarter: { pos: [-0.48, 0.24, 0.44], target: [0, 0.04, 0] },
+  lateral:       { pos: [-0.60, 0.048, 0.015], target: [0, 0.04, 0] },
+  front:         { pos: [0.002, 0.065, 0.56], target: [0, 0.04, 0.08] },
+  fiddleback:    { pos: [0.00, -0.52, 0.01], target: [0, 0.02, 0] },
+  heel:          { pos: [-0.26, 0.08, -0.40], target: [0, 0.05, -0.10] },
+  exploded:      { pos: [-0.58, 0.28, 0.50], target: [0, 0.02, 0] }
+};
+
+// --- Global State ---
+let scene, camera, renderer, controls;
+let shoeGroup;
+let shoeComponents = {};
+let isExploded = false;
+let selectedPieceKey = null;
+let raycaster, mouse;
+let audioCtx = null;
+let soundEnabled = true;
+let targetCamPos = null;
+let targetLookAt = null;
+
+// --- Web Audio SFX ---
 function playSound(type = 'click') {
   if (!soundEnabled) return;
   try {
@@ -47,66 +106,63 @@ function playSound(type = 'click') {
       gain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
       osc.start(t);
       osc.stop(t + 0.15);
+    } else if (type === 'split') {
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(240, t);
+      osc.frequency.exponentialRampToValueAtTime(680, t + 0.25);
+      gain.gain.setValueAtTime(0.09, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+      osc.start(t);
+      osc.stop(t + 0.25);
     }
-  } catch (e) {
-    // Audio context may be restricted before user interaction
-  }
+  } catch (e) {}
 }
 
-// --- Scene Initialization ---
+// --- Initialization ---
 function init() {
   const container = document.getElementById('webgl-container');
 
-  // Scene
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0x0a0a0c);
-  scene.fog = new THREE.FogExp2(0x0a0a0c, 1.0);
+  scene.fog = new THREE.FogExp2(0x0a0a0c, 0.85);
 
-  // Camera
   camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 0.01, 10);
-  camera.position.set(-0.45, 0.24, 0.42);
+  camera.position.set(-0.48, 0.24, 0.44);
 
-  // Renderer
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.15;
+  renderer.toneMappingExposure = 1.20;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   container.appendChild(renderer.domElement);
 
-  // OrbitControls
   controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
   controls.dampingFactor = 0.05;
-  controls.maxDistance = 1.8;
-  controls.minDistance = 0.15;
+  controls.maxDistance = 2.2;
+  controls.minDistance = 0.10;
   controls.target.set(0, 0.04, 0);
 
-  // Lighting Rig (Matching Master Cycles Photography Rig)
+  raycaster = new THREE.Raycaster();
+  mouse = new THREE.Vector2();
+
   setupLights();
-
-  // Contact Shadow Floor
   setupFloor();
-
-  // Load Model
   loadShoeModel();
-
-  // Setup UI Listeners
   setupUI();
+  buildAnatomyUI();
 
-  // Window Resize
   window.addEventListener('resize', onWindowResize);
+  renderer.domElement.addEventListener('pointerdown', onPointerDown);
 
-  // Animation Loop
   animate();
 }
 
 function setupLights() {
-  // Key Softbox (Warm 5200K)
-  const keyLight = new THREE.DirectionalLight(0xfff4e6, 2.8);
-  keyLight.position.set(-0.42, 0.60, 0.38);
+  const keyLight = new THREE.DirectionalLight(0xfff4e6, 3.0);
+  keyLight.position.set(-0.42, 0.65, 0.40);
   keyLight.castShadow = true;
   keyLight.shadow.mapSize.width = 2048;
   keyLight.shadow.mapSize.height = 2048;
@@ -115,24 +171,21 @@ function setupLights() {
   keyLight.shadow.bias = -0.0005;
   scene.add(keyLight);
 
-  // Fill Softbox (Cool 6000K)
-  const fillLight = new THREE.DirectionalLight(0xe5f0ff, 1.2);
-  fillLight.position.set(0.45, 0.35, -0.15);
+  const fillLight = new THREE.DirectionalLight(0xe5f0ff, 1.3);
+  fillLight.position.set(0.48, 0.38, -0.18);
   scene.add(fillLight);
 
-  // Rim / Specular Kick Strip Light
-  const rimLight = new THREE.DirectionalLight(0xfffaed, 2.2);
-  rimLight.position.set(0.20, 0.45, -0.50);
+  const rimLight = new THREE.DirectionalLight(0xfffaed, 2.4);
+  rimLight.position.set(0.22, 0.48, -0.52);
   scene.add(rimLight);
 
-  // Ambient Under-Bounce Light
-  const ambient = new THREE.AmbientLight(0x282830, 0.9);
+  const ambient = new THREE.AmbientLight(0x2c2c34, 0.95);
   scene.add(ambient);
 }
 
 function setupFloor() {
-  const floorGeo = new THREE.PlaneGeometry(6, 6);
-  const floorMat = new THREE.ShadowMaterial({ opacity: 0.45 });
+  const floorGeo = new THREE.PlaneGeometry(8, 8);
+  const floorMat = new THREE.ShadowMaterial({ opacity: 0.50 });
   const floor = new THREE.Mesh(floorGeo, floorMat);
   floor.rotation.x = -Math.PI / 2;
   floor.position.y = -0.0005;
@@ -140,7 +193,7 @@ function setupFloor() {
   scene.add(floor);
 }
 
-// --- GLB Model Loading ---
+// --- Load GLB with All 20 Individual Pieces ---
 function loadShoeModel() {
   const loader = new GLTFLoader();
   const modelPath = './assets/shoe001_aurelius.glb';
@@ -149,11 +202,21 @@ function loadShoeModel() {
     modelPath,
     (gltf) => {
       shoeGroup = gltf.scene;
+      shoeComponents = {};
+
       shoeGroup.traverse((child) => {
         if (child.isMesh) {
           child.castShadow = true;
           child.receiveShadow = true;
           shoeComponents[child.name] = child;
+
+          // Record original local transforms
+          child.userData.originalX = child.position.x;
+          child.userData.originalY = child.position.y;
+          child.userData.originalZ = child.position.z;
+          child.userData.targetX = child.position.x;
+          child.userData.targetY = child.position.y;
+          child.userData.targetZ = child.position.z;
 
           // Clone materials so runtime mutations don't alter original instances
           if (Array.isArray(child.material)) {
@@ -163,12 +226,14 @@ function loadShoeModel() {
           }
         }
       });
+
+      console.log(`Loaded ${Object.keys(shoeComponents).length} individual anatomical shoe components:`, Object.keys(shoeComponents));
       scene.add(shoeGroup);
       hideLoader();
     },
     undefined,
     (error) => {
-      console.error("Error loading GLB asset:", error);
+      console.error("Error loading 20-piece GLB asset:", error);
       hideLoader();
     }
   );
@@ -179,7 +244,212 @@ function hideLoader() {
   if (overlay) overlay.classList.add('hidden');
 }
 
-// --- Interactive Customizer Handlers ---
+// --- 20-Piece Exploded View Controller ---
+function animateExplosion(exploded) {
+  if (!shoeGroup) return;
+
+  ANATOMICAL_PIECES.forEach((piece) => {
+    const comp = shoeComponents[piece.key];
+    if (comp) {
+      const offset = EXPLODED_OFFSETS[piece.key] || { dy: 0, dz: 0, dx: 0 };
+      if (exploded) {
+        comp.userData.targetX = comp.userData.originalX + (offset.dx || 0);
+        comp.userData.targetY = comp.userData.originalY + (offset.dy || 0);
+        comp.userData.targetZ = comp.userData.originalZ + (offset.dz || 0);
+      } else {
+        comp.userData.targetX = comp.userData.originalX;
+        comp.userData.targetY = comp.userData.originalY;
+        comp.userData.targetZ = comp.userData.originalZ;
+      }
+    }
+  });
+
+  if (exploded) {
+    tweenCamera(CAMERA_PRESETS.exploded.pos, CAMERA_PRESETS.exploded.target);
+    showAnatomyDrawer(true);
+  } else {
+    tweenCamera(CAMERA_PRESETS.three_quarter.pos, CAMERA_PRESETS.three_quarter.target);
+    showAnatomyDrawer(false);
+    deselectPiece();
+  }
+}
+
+// --- Dynamic Anatomy UI Drawer ---
+function buildAnatomyUI() {
+  const drawer = document.getElementById('anatomy-drawer');
+  if (!drawer) return;
+
+  const listEl = document.getElementById('anatomy-list');
+  if (!listEl) return;
+
+  listEl.innerHTML = '';
+  ANATOMICAL_PIECES.forEach((piece) => {
+    const item = document.createElement('div');
+    item.className = 'anatomy-item';
+    item.dataset.key = piece.key;
+    item.innerHTML = `
+      <div class="anatomy-item-header">
+        <span class="anatomy-badge">#${String(piece.id).padStart(2, '0')}</span>
+        <span class="anatomy-name">${piece.name}</span>
+        <span class="anatomy-cat">${piece.category}</span>
+      </div>
+      <div class="anatomy-item-meta">${piece.material}</div>
+    `;
+
+    item.addEventListener('click', () => {
+      selectPiece(piece.key);
+    });
+
+    listEl.appendChild(item);
+  });
+}
+
+function showAnatomyDrawer(show) {
+  const drawer = document.getElementById('anatomy-drawer');
+  if (drawer) {
+    drawer.classList.toggle('open', show);
+  }
+  const specHud = document.querySelector('.spec-hud');
+  if (specHud) {
+    specHud.style.opacity = show ? '0' : '1';
+    specHud.style.pointerEvents = show ? 'none' : 'auto';
+  }
+}
+
+function selectPiece(pieceKey) {
+  selectedPieceKey = pieceKey;
+  playSound('glide');
+
+  // Update list active state
+  document.querySelectorAll('.anatomy-item').forEach((el) => {
+    el.classList.toggle('active', el.dataset.key === pieceKey);
+    if (el.dataset.key === pieceKey) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  });
+
+  const piece = ANATOMICAL_PIECES.find(p => p.key === pieceKey);
+  const comp = shoeComponents[pieceKey];
+
+  // Update Inspector Card
+  const card = document.getElementById('anatomy-inspector-card');
+  if (card && piece) {
+    card.classList.remove('hidden');
+    card.innerHTML = `
+      <div class="inspector-badge">COMPONENT #${String(piece.id).padStart(2, '0')} // ${piece.category.toUpperCase()}</div>
+      <div class="inspector-title">${piece.name}</div>
+      <div class="inspector-img-container">
+        <img src="/pieces/${piece.file}" alt="${piece.name}" class="inspector-img" onerror="this.style.display='none'" />
+      </div>
+      <div class="inspector-meta-row">
+        <span class="inspector-lbl">Material:</span>
+        <span class="inspector-val">${piece.material}</span>
+      </div>
+      <div class="inspector-desc">${piece.desc}</div>
+      <button class="btn-focus-piece" id="btn-focus-current">Focus Camera in 3D</button>
+    `;
+    const btnFocus = document.getElementById('btn-focus-current');
+    if (btnFocus && comp) {
+      btnFocus.addEventListener('click', () => {
+        focusCameraOnObject(comp);
+      });
+    }
+  }
+
+  // Focus camera directly on the piece if it exists
+  if (comp) {
+    focusCameraOnObject(comp);
+    highlightPieceMesh(comp);
+  }
+}
+
+function deselectPiece() {
+  selectedPieceKey = null;
+  document.querySelectorAll('.anatomy-item').forEach(el => el.classList.remove('active'));
+  const card = document.getElementById('anatomy-inspector-card');
+  if (card) card.classList.add('hidden');
+  resetHighlights();
+}
+
+function highlightPieceMesh(targetComp) {
+  resetHighlights();
+  if (!targetComp) return;
+
+  targetComp.traverse((child) => {
+    if (child.isMesh && child.material) {
+      const mats = Array.isArray(child.material) ? child.material : [child.material];
+      mats.forEach((m) => {
+        if (!m.userData.origEmissive) {
+          m.userData.origEmissive = m.emissive ? m.emissive.clone() : new THREE.Color(0,0,0);
+        }
+        if (m.emissive) {
+          m.emissive.setHex(0x3a2c08); // Warm subtle highlight
+        }
+      });
+    }
+  });
+}
+
+function resetHighlights() {
+  Object.values(shoeComponents).forEach((comp) => {
+    if (comp) {
+      comp.traverse((child) => {
+        if (child.isMesh && child.material) {
+          const mats = Array.isArray(child.material) ? child.material : [child.material];
+          mats.forEach((m) => {
+            if (m.userData.origEmissive && m.emissive) {
+              m.emissive.copy(m.userData.origEmissive);
+            }
+          });
+        }
+      });
+    }
+  });
+}
+
+function focusCameraOnObject(comp) {
+  const box = new THREE.Box3().setFromObject(comp);
+  const center = new THREE.Vector3();
+  const size = new THREE.Vector3();
+  box.getCenter(center);
+  box.getSize(size);
+
+  const maxDim = Math.max(size.x, size.y, size.z, 0.05);
+  const dist = maxDim * 2.8 + 0.18;
+  const newPos = center.clone().add(new THREE.Vector3(-dist * 0.7, dist * 0.45, dist * 0.7));
+
+  tweenCamera([newPos.x, newPos.y, newPos.z], [center.x, center.y, center.z]);
+}
+
+// --- 3D Viewport Raycasting Click Handler ---
+function onPointerDown(event) {
+  if (!isExploded || !shoeGroup) return;
+
+  const rect = renderer.domElement.getBoundingClientRect();
+  mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+  mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+  raycaster.setFromCamera(mouse, camera);
+  const intersects = raycaster.intersectObjects(shoeGroup.children, true);
+
+  if (intersects.length > 0) {
+    let hit = intersects[0].object;
+    while (hit.parent && hit.parent !== shoeGroup) {
+      hit = hit.parent;
+    }
+    if (hit && shoeComponents[hit.name]) {
+      selectPiece(hit.name);
+    }
+  }
+}
+
+// --- Camera & Tweening ---
+function tweenCamera(pos, target) {
+  targetCamPos = new THREE.Vector3(...pos);
+  targetLookAt = new THREE.Vector3(...target);
+}
+
+// --- Material Customizer ---
 function setupUI() {
   // 1. Upper Leather
   setupSwatchGroup('swatches-upper', 'label-upper-color', (colorHex) => {
@@ -187,43 +457,30 @@ function setupUI() {
     setUpperVampColor(colorHex);
   });
 
-  // 2. Toe Cap
+  // 2. Toe Cap Glaze
   setupSwatchGroup('swatches-toe', 'label-toe-color', (colorHex) => {
     playSound('click');
     setToeCapColor(colorHex);
   });
 
-  // 3. Laces
+  // 3. Waxed Laces
   setupSwatchGroup('swatches-laces', 'label-lace-color', (colorHex) => {
     playSound('click');
     setLacesColor(colorHex);
   });
 
-  // 4. Sole & Fiddleback
+  // 4. Outsole
   setupSwatchGroup('swatches-sole', 'label-sole-color', (colorHex) => {
     playSound('click');
     setSoleColor(colorHex);
-  });
-
-  // Camera Shot Buttons
-  document.querySelectorAll('.cam-btn').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.cam-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      const shot = btn.dataset.shot;
-      if (CAMERA_PRESETS[shot]) {
-        playSound('glide');
-        tweenCamera(CAMERA_PRESETS[shot].pos, CAMERA_PRESETS[shot].target);
-      }
-    });
   });
 
   // Explode Deconstruct Button
   const btnExplode = document.getElementById('btn-explode');
   if (btnExplode) {
     btnExplode.addEventListener('click', () => {
-      playSound('click');
       isExploded = !isExploded;
+      playSound(isExploded ? 'split' : 'click');
       btnExplode.classList.toggle('active', isExploded);
       btnExplode.querySelector('span').textContent = isExploded ? 'Reassemble Shoe' : 'Anatomy Deconstruct';
       animateExplosion(isExploded);
@@ -240,6 +497,19 @@ function setupUI() {
       playSound('click');
     });
   }
+
+  // Camera Shot Buttons
+  document.querySelectorAll('.cam-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.cam-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const shot = btn.dataset.shot;
+      if (CAMERA_PRESETS[shot]) {
+        playSound('glide');
+        tweenCamera(CAMERA_PRESETS[shot].pos, CAMERA_PRESETS[shot].target);
+      }
+    });
+  });
 }
 
 function setupSwatchGroup(containerId, labelId, onSelect) {
@@ -257,86 +527,36 @@ function setupSwatchGroup(containerId, labelId, onSelect) {
   });
 }
 
-function setUpperVampColor(hexColor) {
-  const col = new THREE.Color(hexColor);
-  const upper = shoeComponents['Upper_Master'];
-  if (upper) {
-    if (Array.isArray(upper.material) && upper.material[0]) {
-      upper.material[0].color.copy(col);
-    } else if (upper.material) {
-      upper.material.color.copy(col);
-    }
+function applyColorToMesh(comp, colorHex, matIdx = 0) {
+  if (!comp) return;
+  const col = new THREE.Color(colorHex);
+  if (Array.isArray(comp.material)) {
+    if (comp.material[matIdx]) comp.material[matIdx].color.copy(col);
+  } else if (comp.material) {
+    comp.material.color.copy(col);
   }
+}
+
+function setUpperVampColor(hexColor) {
+  applyColorToMesh(shoeComponents['Piece_15_Vamp'], hexColor);
+  applyColorToMesh(shoeComponents['Piece_12_Quarters'], hexColor);
+  applyColorToMesh(shoeComponents['Piece_16_Facings'], hexColor, 0);
+  applyColorToMesh(shoeComponents['Piece_14_Rolled_Collar_Binding'], hexColor);
 }
 
 function setToeCapColor(hexColor) {
-  const col = new THREE.Color(hexColor);
-  const upper = shoeComponents['Upper_Master'];
-  if (upper) {
-    if (Array.isArray(upper.material) && upper.material[1]) {
-      upper.material[1].color.copy(col);
-    } else if (upper.material) {
-      upper.material.color.copy(col);
-    }
-  }
+  applyColorToMesh(shoeComponents['Piece_18_Toe_Cap'], hexColor);
+  applyColorToMesh(shoeComponents['Piece_13_Heel_Back_Strip'], hexColor);
 }
 
 function setLacesColor(hexColor) {
-  const col = new THREE.Color(hexColor);
-  const laces = shoeComponents['Lacing_WaxedCotton'];
-  if (laces && laces.material) {
-    laces.material.color.copy(col);
-  }
+  applyColorToMesh(shoeComponents['Piece_19_Waxed_Laces'], hexColor, 0);
 }
 
 function setSoleColor(hexColor) {
-  const col = new THREE.Color(hexColor);
-  const sole = shoeComponents['Construction_Sole_Unit'];
-  if (sole && sole.material) {
-    sole.material.color.copy(col);
-  }
-  const heel = shoeComponents['Construction_HeelStack'];
-  if (heel && heel.material) {
-    heel.material.color.copy(col.clone().multiplyScalar(0.7)); // Stacked leather is slightly darker
-  }
-}
-
-// --- Camera & Explode Animations ---
-let targetCamPos = null;
-let targetLookAt = null;
-
-function tweenCamera(pos, target) {
-  targetCamPos = new THREE.Vector3(...pos);
-  targetLookAt = new THREE.Vector3(...target);
-}
-
-function animateExplosion(exploded) {
-  if (!shoeGroup) return;
-  const offsets = {
-    Upper_Master: exploded ? 0.08 : 0,
-    Lacing_WaxedCotton: exploded ? 0.14 : 0,
-    Upper_Stitching_TwinSeam: exploded ? 0.08 : 0,
-    Construction_Sole_Unit: exploded ? -0.04 : 0,
-    Construction_HeelStack: exploded ? -0.08 : 0
-  };
-
-  // Also include eyelets and aglets in the upper displacement
-  Object.keys(shoeComponents).forEach((name) => {
-    let dy = 0;
-    if (name.includes('Eyelet') || name.includes('Aglet')) {
-      dy = exploded ? 0.11 : 0;
-    } else if (name.includes('Heel_Brass_Nail')) {
-      dy = exploded ? -0.08 : 0;
-    } else if (offsets[name] !== undefined) {
-      dy = offsets[name];
-    }
-    
-    const comp = shoeComponents[name];
-    if (comp) {
-      if (comp.userData.originalY === undefined) comp.userData.originalY = comp.position.y;
-      comp.userData.targetY = comp.userData.originalY + dy;
-    }
-  });
+  applyColorToMesh(shoeComponents['Piece_04_Outsole'], hexColor);
+  applyColorToMesh(shoeComponents['Piece_03_Leather_Rand'], hexColor);
+  applyColorToMesh(shoeComponents['Piece_02_Heel_Lifts'], hexColor, 0);
 }
 
 function onWindowResize() {
@@ -345,30 +565,35 @@ function onWindowResize() {
   renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
+// --- Render Loop ---
 function animate() {
   requestAnimationFrame(animate);
 
-  // Smooth camera glide
+  // Smooth camera lerp
   if (targetCamPos) {
     camera.position.lerp(targetCamPos, 0.06);
     controls.target.lerp(targetLookAt, 0.06);
-    if (camera.position.distanceTo(targetCamPos) < 0.005) {
+    if (camera.position.distanceTo(targetCamPos) < 0.003) {
       targetCamPos = null;
       targetLookAt = null;
     }
   }
 
-  // Smooth exploded view lerping
+  // Smooth piece deconstruction lerping in 3D
   Object.values(shoeComponents).forEach((comp) => {
     if (comp && comp.userData.targetY !== undefined) {
-      comp.position.y = THREE.MathUtils.lerp(comp.position.y, comp.userData.targetY, 0.1);
+      comp.position.x = THREE.MathUtils.lerp(comp.position.x, comp.userData.targetX, 0.08);
+      comp.position.y = THREE.MathUtils.lerp(comp.position.y, comp.userData.targetY, 0.08);
+      comp.position.z = THREE.MathUtils.lerp(comp.position.z, comp.userData.targetZ, 0.08);
     }
   });
 
-  // Subtle floating levitation if not exploded
+  // Gentle levitation when assembled
   if (shoeGroup && !isExploded) {
     const t = performance.now() * 0.001;
     shoeGroup.position.y = Math.sin(t * 1.5) * 0.0025;
+  } else if (shoeGroup) {
+    shoeGroup.position.y = 0;
   }
 
   controls.update();
